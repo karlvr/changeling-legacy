@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var immer_1 = require("immer");
-function forComponent(component) {
+function forComponentProps(component) {
     return new ChangelingImpl(function () { return component.props; });
 }
-exports.forComponent = forComponent;
+exports.forComponentProps = forComponentProps;
 function forComponentState(component) {
     return new ChangelingImpl(function () { return ({
         onChange: function (newValue) { return component.setState(immer_1.produce(function (draft) {
