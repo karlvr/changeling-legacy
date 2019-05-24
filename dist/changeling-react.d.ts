@@ -4,12 +4,23 @@ export declare function wrapComponent<R, P extends Changeable<R>>(Component: Rea
     changeling: Changeling<T>;
     name: K;
 }) => JSX.Element;
-declare type ElementAttributes = React.InputHTMLAttributes<HTMLInputElement>;
-interface ChangelingInputProps<T, K extends keyof T> extends ElementAttributes {
+declare type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
+interface ChangelingInputProps<T, K extends keyof T> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
     changeling: Changeling<T>;
-    changelingProperty: K;
+    convert?: (value: string) => T[K];
+    prop: K;
 }
 export declare class ChangelingInput<T, K extends keyof T> extends React.Component<ChangelingInputProps<T, K>> {
+    render(): JSX.Element;
+    private onChange;
+    private convertValue;
+}
+interface ChangelingTextAreaProps<T, K extends keyof T> extends Omit<React.InputHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange'> {
+    changeling: Changeling<T>;
+    convert?: (value: string) => T[K];
+    prop: K;
+}
+export declare class ChangelingTextArea<T, K extends keyof T> extends React.Component<ChangelingTextAreaProps<T, K>> {
     render(): JSX.Element;
     private onChange;
     private convertValue;

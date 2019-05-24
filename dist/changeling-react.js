@@ -54,34 +54,48 @@ var ChangelingInput = /** @class */ (function (_super) {
     function ChangelingInput() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.onChange = function (evt) {
-            _this.props.changeling.prop(_this.props.changelingProperty).onChange(_this.convertValue(evt.target.value));
+            _this.props.changeling.prop(_this.props.prop).onChange(_this.convertValue(evt.target.value));
         };
         _this.convertValue = function (value) {
-            return value;
+            if (_this.props.convert) {
+                return _this.props.convert(value);
+            }
+            else {
+                return value;
+            }
         };
         return _this;
     }
     ChangelingInput.prototype.render = function () {
-        var _a = this.props, changeling = _a.changeling, changelingProperty = _a.changelingProperty, rest = __rest(_a, ["changeling", "changelingProperty"]);
-        var value = changeling.prop(changelingProperty).value;
-        return (React.createElement("input", __assign({ value: "" + value || '', onChange: this.onChange }, rest)));
+        var _a = this.props, changeling = _a.changeling, prop = _a.prop, rest = __rest(_a, ["changeling", "prop"]);
+        var value = changeling.prop(prop).value;
+        return (React.createElement("input", __assign({ value: value !== undefined && value !== null ? "" + value : '', onChange: this.onChange }, rest)));
     };
     return ChangelingInput;
 }(React.Component));
 exports.ChangelingInput = ChangelingInput;
-// interface TTT {
-// 	blah: string
-// }
-// let cc: TTT = {
-// 	blah: 'what',
-// }
-// const c = forFuncs(
-// 	() => cc, 
-// 	(newValue: TTT) => {
-// 		cc = newValue
-// 		return
-// 	}
-// )
-// (
-// 	<ChangelingInput changeling={} changelingProperty="" />
-// )
+var ChangelingTextArea = /** @class */ (function (_super) {
+    __extends(ChangelingTextArea, _super);
+    function ChangelingTextArea() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.onChange = function (evt) {
+            _this.props.changeling.prop(_this.props.prop).onChange(_this.convertValue(evt.target.value));
+        };
+        _this.convertValue = function (value) {
+            if (_this.props.convert) {
+                return _this.props.convert(value);
+            }
+            else {
+                return value;
+            }
+        };
+        return _this;
+    }
+    ChangelingTextArea.prototype.render = function () {
+        var _a = this.props, changeling = _a.changeling, prop = _a.prop, rest = __rest(_a, ["changeling", "prop"]);
+        var value = changeling.prop(prop).value;
+        return (React.createElement("textarea", __assign({ value: value !== undefined && value !== null ? "" + value : '', onChange: this.onChange }, rest)));
+    };
+    return ChangelingTextArea;
+}(React.Component));
+exports.ChangelingTextArea = ChangelingTextArea;
