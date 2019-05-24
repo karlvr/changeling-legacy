@@ -4,3 +4,14 @@ export declare function wrapComponent<R, P extends Changeable<R>>(Component: Rea
     changeling: Changeling<T>;
     name: K;
 }) => JSX.Element;
+declare type ElementAttributes = React.InputHTMLAttributes<HTMLInputElement>;
+interface ChangelingInputProps<T, K extends keyof T> extends ElementAttributes {
+    changeling: Changeling<T>;
+    changelingProperty: K;
+}
+export declare class ChangelingInput<T, K extends keyof T> extends React.Component<ChangelingInputProps<T, K>> {
+    render(): JSX.Element;
+    private onChange;
+    private convertValue;
+}
+export {};

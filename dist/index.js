@@ -6,3 +6,4 @@ exports.forComponentState = changeling_1.forComponentState;
 exports.forFuncs = changeling_1.forFuncs;
 var changeling_react_1 = require("./changeling-react");
 exports.wrapComponent = changeling_react_1.wrapComponent;
+exports.Input = changeling_react_1.ChangelingInput;
