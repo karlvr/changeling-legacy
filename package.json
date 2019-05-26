@@ -5,8 +5,11 @@
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "tsc",
-		"test": "jest"
+		"build": "tsc --build tsconfig.prod.json",
+		"clean": "rm -rf dist",
+		"test": "jest",
+		"test-watch": "jest --watch",
+		"watch": "tsc --watch"
 	},
 	"keywords": [
 		"immer",

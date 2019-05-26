@@ -1,92 +1,193 @@
 import { produce } from 'immer'
+import { KEY, PROPERTY, KEYABLE } from './types';
+import { FunctionKeys } from './utilities';
 
 /** Interface for component props */
-export interface Changeable<T> {
-	onChange: (value: T) => void
-	value: T
+export interface Snapshot<T> {
+	readonly onChange: (value: T) => void
+	readonly value: T
 }
 
 /** Interface for component containing changeable props */
-interface ChangeableComponent<T> {
-	props: Changeable<T>
+interface ChangeableComponentWithProps<T> {
+	props: Snapshot<T>
 }
 
-export interface ChangeableState<T> {
-	value: T
+interface ChangeableComponentWithPropsGeneral<T> {
+	props: T
 }
 
 /** Interface for component with the changeable value in the state */
 interface ChangeableComponentWithState<T> {
-	setState: (func: (state: ChangeableState<T>) => ChangeableState<T>) => void
-	state: ChangeableState<T>
+	setState: (func: (state: T) => T) => void
+	state: T
 }
 
-export interface Changeling<T> {
-	prop<K extends keyof T>(name: K): Changeable<T[K]>
+export interface Controller<T> {
+	controller<K extends KEY<T>>(name: K): Controller<PROPERTY<T, K>>
+
+	snapshot(): Snapshot<T>
+	snapshot<K extends KEY<T>>(name: K): Snapshot<PROPERTY<T, K>>
+	
+	getter<K extends KEY<T>>(name: K, func: (value: PROPERTY<T, K>) => PROPERTY<T, K>): void
+	setter<K extends KEY<T>>(name: K, func: (value: PROPERTY<T, K>) => PROPERTY<T, K>): void
 }
 
-export function forComponentProps<T>(component: ChangeableComponent<T>): Changeling<T> {
-	return new ChangelingImpl(() => component.props)
+/**
+ * Create a Changeling for a React component's props containing a `value` and `onChange` prop like `Changeable`.
+ * @param component A React component
+ */
+export function forComponentProps<T, K extends KEY<T>>(component: ChangeableComponentWithProps<T>): Controller<T>
+
+/**
+ * Create a Changeling for a named property in a React component's state. You must provide the name of the
+ * property containing the value and the property containing the change handling function.
+ * @param component A React component
+ * @param valueProperty The name of the property containing the `value`.
+ * @param onChangeProperty The name of the property containing the `onChange` function.
+ */
+export function forComponentProps<T, K extends KEY<T>, L extends FunctionKeys<T>>(component: ChangeableComponentWithPropsGeneral<T>, valueProperty: K, onChangeProperty: L): Controller<PROPERTY<T, K>>
+export function forComponentProps<T, K extends KEY<T>, L extends FunctionKeys<T>>(component: ChangeableComponentWithPropsGeneral<T>, valueProperty?: K, onChangeProperty?: L): Controller<PROPERTY<T, K>> | Controller<T> {
+	if (onChangeProperty === undefined || valueProperty === undefined) {
+		return new ChangelingImpl(() => component.props as any as Snapshot<T>)
+	} else {
+		return new ChangelingImpl(() => ({
+			onChange: (newValue: T) => ((component.props as any)[onChangeProperty] as any as (newValue: T) => void)(newValue),
+			value: (component.props as any)[valueProperty] as T,
+		}))
+	}
 }
 
-export function forComponentState<T>(component: ChangeableComponentWithState<T>): Changeling<T> {
-	return new ChangelingImpl(() => ({
-		onChange: (newValue: T) => component.setState(produce((draft) => {
-			draft.value = newValue
-		})),
-		value: component.state.value,
-	}))
+/**
+ * Create a Changeling for a React component's state.
+ * @param component A React component
+ */
+export function forComponentState<T>(component: ChangeableComponentWithState<T>): Controller<T>
+
+/**
+ * Create a Changeling for a named property in a React component's state.
+ * @param component A React component
+ * @param property A property name within the component's state
+ */
+export function forComponentState<T, K extends KEY<T>>(component: ChangeableComponentWithState<T>, property: K): Controller<PROPERTY<T, K>>
+
+export function forComponentState<T, K extends KEY<T>>(component: ChangeableComponentWithState<T>, property?: K): Controller<PROPERTY<T, K>> | Controller<T> {
+	if (property === undefined) {
+		return new ChangelingImpl(() => ({
+			onChange: (newValue: T) => component.setState(() => newValue),
+			value: component.state,
+		}))
+	} else {
+		return new ChangelingImpl(() => ({
+			onChange: (newValue: PROPERTY<T, K>) => component.setState(produce((draft) => {
+				draft[property] = newValue
+			})),
+			value: (component.state as KEYABLE<T>)[property],
+		}))
+	}
 }
 
-export function forFuncs<T>(value: () => T, onChange: (newValue: T) => void): Changeling<T> {
+export function withFuncs<T>(value: () => T, onChange: (newValue: T) => void): Controller<T> {
 	return new ChangelingImpl(() => ({
 		onChange,
 		value: value(),
 	}))
 }
 
-class ChangelingImpl<T> implements Changeling<T> {
+class ChangelingImpl<T> implements Controller<T> {
 
-	private locator: () => Changeable<T>
+	private locator: () => Snapshot<T>
 
 	private onChanges: {
 		[name: string]: (value: any) => void,
 	} = {}
+	
+	private getters: {
+		[name: string]: (value: any) => PROPERTY<T, KEY<T>>,
+	} = {}
+	
+	private setters: {
+		[name: string]: (value: any) => PROPERTY<T, KEY<T>>,
+	} = {}
 
-	public constructor(locator: () => Changeable<T>) {
+	public constructor(locator: () => Snapshot<T>) {
 		this.locator = locator
 	}
 
-	public prop<K extends keyof T>(name: K): Changeable<T[K]> {
-		return {
-			onChange: this.subOnChange(name),
-			value: this.value()[name],
+	public snapshot(): Snapshot<T>
+	public snapshot<K extends KEY<T>>(name?: K): Snapshot<PROPERTY<T, K>>
+	public snapshot<K extends KEY<T>>(name?: K): Snapshot<T> | Snapshot<PROPERTY<T, K>> {
+		if (name !== undefined) {
+			const onChange: any = this.propOnChange(name as any as keyof T)
+			let value: any = this.value !== undefined ? this.value[name as any as keyof T] : undefined
+
+			const getter = this.getters[name as string]
+			if (getter) {
+				value = getter(value)
+			}
+
+			return {
+				onChange,
+				value: value as PROPERTY<T, K>,
+			}
+		} else {
+			return {
+				onChange: (newValue: T) => this.onChange(newValue),
+				value: this.value,
+			}
 		}
 	}
 
-	private value(): T {
+	public getter<K extends KEY<T>>(name: K, func: (value: PROPERTY<T, K>) => PROPERTY<T, K>) {
+		this.getters[name as string] = func
+	}
+
+	public setter<K extends KEY<T>>(name: K, func: (value: PROPERTY<T, K>) => PROPERTY<T, K>) {
+		this.setters[name as string] = func
+		delete this.onChanges[name as string]
+	}
+
+	public controller<K extends KEY<T>>(name: K): Controller<PROPERTY<T, K>> {
+		return new ChangelingImpl(() => this.snapshot(name as any) as any)
+	}
+
+	private get value(): T {
 		return this.locator().value
 	}
 
-	private onChange(): ((value: T) => void) {
-		return this.locator().onChange
+	private onChange(value: T) {
+		return this.locator().onChange(value)
 	}
 
-	private subOnChange<K extends keyof T>(name: K): ((value: T[K]) => void) {
-		const result = this.onChanges[name as string]
-		if (result) {
-			return result
+	private propOnChange<K extends keyof T>(name: K): ((value: T[K]) => void) {
+		const PROPERTY = this.onChanges[name as string]
+		if (PROPERTY) {
+			return PROPERTY
 		}
 
-		const func = (subValue: T[K]): void => {
-			const value = this.value()
-			const newValue = produce(value, (draft) => {
-				draft[name] = subValue as any
-			})
+		let func = (subValue: T[K]): void => {
+			const value = this.value
+			const newValue = value !== undefined ?
+				produce(value, (draft) => {
+					draft[name] = subValue as any
+				})
+				: {
+					[name]: subValue
+				}
 
-			const onChange = this.onChange()
-			onChange(newValue)
+			this.onChange(newValue as T)
 		}
+
+		const setter = this.setters[name as string]
+		if (setter) {
+			const existingNewFunc = func
+			const newFunc = (subValue: T[K]): void => {
+				const subValue2 = setter(subValue) as PROPERTY<T, K>
+				existingNewFunc(subValue2)
+			}
+			func = newFunc
+		}
+
 		this.onChanges[name as string] = func
 		return func
 	}
