@@ -43,18 +43,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = __importStar(require("react"));
 function wrapComponent(Component) {
     return function (props) {
-        var changeling = props.changeling, name = props.name, rest = __rest(props, ["changeling", "name"]);
-        var changeable = changeling.prop(name);
-        return (React.createElement(Component, __assign({ value: changeable.value, onChange: changeable.onChange }, rest)));
+        var controller = props.controller, prop = props.prop, rest = __rest(props, ["controller", "prop"]);
+        var c = controller.snapshot(prop);
+        return (React.createElement(Component, __assign({ value: c.value, onChange: c.onChange }, rest)));
     };
 }
 exports.wrapComponent = wrapComponent;
-var ChangelingInput = /** @class */ (function (_super) {
-    __extends(ChangelingInput, _super);
-    function ChangelingInput() {
+var Input = /** @class */ (function (_super) {
+    __extends(Input, _super);
+    function Input() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.onChange = function (evt) {
-            _this.props.changeling.prop(_this.props.prop).onChange(_this.convertValue(evt.target.value));
+            _this.props.controller.snapshot(_this.props.prop).onChange(_this.convertValue(evt.target.value));
         };
         _this.convertValue = function (value) {
             if (_this.props.convert) {
@@ -66,20 +66,43 @@ var ChangelingInput = /** @class */ (function (_super) {
         };
         return _this;
     }
-    ChangelingInput.prototype.render = function () {
-        var _a = this.props, changeling = _a.changeling, prop = _a.prop, rest = __rest(_a, ["changeling", "prop"]);
-        var value = changeling.prop(prop).value;
+    Input.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, convert = _a.convert, rest = __rest(_a, ["controller", "prop", "convert"]);
+        var value = controller.snapshot(prop).value;
         return (React.createElement("input", __assign({ value: value !== undefined && value !== null ? "" + value : '', onChange: this.onChange }, rest)));
     };
-    return ChangelingInput;
+    return Input;
 }(React.Component));
-exports.ChangelingInput = ChangelingInput;
-var ChangelingTextArea = /** @class */ (function (_super) {
-    __extends(ChangelingTextArea, _super);
-    function ChangelingTextArea() {
+exports.Input = Input;
+var LazyInput = /** @class */ (function (_super) {
+    __extends(LazyInput, _super);
+    function LazyInput() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.onChange = function (evt) {
-            _this.props.changeling.prop(_this.props.prop).onChange(_this.convertValue(evt.target.value));
+        _this.onBlur = function (evt) {
+            var _a = _this.props, controller = _a.controller, prop = _a.prop;
+            var snapshot = controller.snapshot(prop);
+            var value = _this.convertValue(evt.target.value);
+            if (value !== undefined) {
+                snapshot.onChange(value);
+            }
+            else if (evt.target.value === '') {
+                snapshot.onChange(undefined);
+            }
+            else {
+                evt.target.value = _this.displayValue(snapshot.value);
+                evt.target.select();
+            }
+        };
+        _this.displayValue = function (value) {
+            if (_this.props.display) {
+                return _this.props.display(value);
+            }
+            if (value !== undefined && value !== null) {
+                return "" + value;
+            }
+            else {
+                return '';
+            }
         };
         _this.convertValue = function (value) {
             if (_this.props.convert) {
@@ -91,11 +114,67 @@ var ChangelingTextArea = /** @class */ (function (_super) {
         };
         return _this;
     }
-    ChangelingTextArea.prototype.render = function () {
-        var _a = this.props, changeling = _a.changeling, prop = _a.prop, rest = __rest(_a, ["changeling", "prop"]);
-        var value = changeling.prop(prop).value;
+    LazyInput.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, convert = _a.convert, display = _a.display, rest = __rest(_a, ["controller", "prop", "convert", "display"]);
+        var value = controller.snapshot(prop).value;
+        var displayValue = this.displayValue(value);
+        return (React.createElement("input", __assign({ key: displayValue, defaultValue: displayValue, onBlur: this.onBlur }, rest)));
+    };
+    return LazyInput;
+}(React.Component));
+exports.LazyInput = LazyInput;
+var CheckableInput = /** @class */ (function (_super) {
+    __extends(CheckableInput, _super);
+    function CheckableInput() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.onChange = function (evt) {
+            if (evt.target.checked) {
+                _this.props.controller.snapshot(_this.props.prop).onChange(_this.convertValue(evt.target.value));
+            }
+            else {
+                _this.props.controller.snapshot(_this.props.prop).onChange(_this.convertValue(''));
+            }
+        };
+        _this.convertValue = function (value) {
+            if (_this.props.convert) {
+                return _this.props.convert(value);
+            }
+            else {
+                return value;
+            }
+        };
+        return _this;
+    }
+    CheckableInput.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, value = _a.value, convert = _a.convert, rest = __rest(_a, ["controller", "prop", "value", "convert"]);
+        var selectedValue = controller.snapshot(prop).value;
+        return (React.createElement("input", __assign({ checked: value === selectedValue, onChange: this.onChange, value: value !== undefined && value !== null ? "" + value : '' }, rest)));
+    };
+    return CheckableInput;
+}(React.Component));
+exports.CheckableInput = CheckableInput;
+var TextArea = /** @class */ (function (_super) {
+    __extends(TextArea, _super);
+    function TextArea() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.onChange = function (evt) {
+            _this.props.controller.snapshot(_this.props.prop).onChange(_this.convertValue(evt.target.value));
+        };
+        _this.convertValue = function (value) {
+            if (_this.props.convert) {
+                return _this.props.convert(value);
+            }
+            else {
+                return value;
+            }
+        };
+        return _this;
+    }
+    TextArea.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, convert = _a.convert, rest = __rest(_a, ["controller", "prop", "convert"]);
+        var value = controller.snapshot(prop).value;
         return (React.createElement("textarea", __assign({ value: value !== undefined && value !== null ? "" + value : '', onChange: this.onChange }, rest)));
     };
-    return ChangelingTextArea;
+    return TextArea;
 }(React.Component));
-exports.ChangelingTextArea = ChangelingTextArea;
+exports.TextArea = TextArea;
