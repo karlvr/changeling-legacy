@@ -129,24 +129,16 @@ var CheckableInput = /** @class */ (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.onChange = function (evt) {
             if (evt.target.checked) {
-                _this.props.controller.snapshot(_this.props.prop).onChange(_this.convertValue(evt.target.value));
+                _this.props.controller.snapshot(_this.props.prop).onChange(_this.props.value);
             }
             else {
-                _this.props.controller.snapshot(_this.props.prop).onChange(_this.convertValue(''));
-            }
-        };
-        _this.convertValue = function (value) {
-            if (_this.props.convert) {
-                return _this.props.convert(value);
-            }
-            else {
-                return value;
+                _this.props.controller.snapshot(_this.props.prop).onChange(undefined);
             }
         };
         return _this;
     }
     CheckableInput.prototype.render = function () {
-        var _a = this.props, controller = _a.controller, prop = _a.prop, value = _a.value, convert = _a.convert, rest = __rest(_a, ["controller", "prop", "value", "convert"]);
+        var _a = this.props, controller = _a.controller, prop = _a.prop, value = _a.value, rest = __rest(_a, ["controller", "prop", "value"]);
         var selectedValue = controller.snapshot(prop).value;
         return (React.createElement("input", __assign({ checked: value === selectedValue, onChange: this.onChange, value: value !== undefined && value !== null ? "" + value : '' }, rest)));
     };

@@ -30,14 +30,12 @@ export declare class LazyInput<T, K extends KEY<T>> extends React.Component<Lazy
 }
 interface CheckableInputProps<T, K extends KEY<T>> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'checked' | 'onChange' | 'value'> {
     controller: Controller<T>;
-    convert?: (value: string) => PROPERTY<T, K>;
     prop: K;
     value?: KEYABLE<T>[K];
 }
 export declare class CheckableInput<T, K extends KEY<T>> extends React.Component<CheckableInputProps<T, K>> {
     render(): JSX.Element;
     private onChange;
-    private convertValue;
 }
 interface TextAreaProps<T, K extends KEY<T>> extends Omit<React.InputHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange'> {
     controller: Controller<T>;
