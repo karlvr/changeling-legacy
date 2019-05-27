@@ -37,6 +37,24 @@ function withFuncs(value, onChange) {
     }); });
 }
 exports.withFuncs = withFuncs;
+function withMutable(value) {
+    return new ChangelingImpl(function () { return ({
+        onChange: function (newValue) {
+            for (var i in value) {
+                if (value.hasOwnProperty(i)) {
+                    delete value[i];
+                }
+            }
+            for (var i in newValue) {
+                if (newValue.hasOwnProperty(i)) {
+                    value[i] = newValue[i];
+                }
+            }
+        },
+        value: value,
+    }); });
+}
+exports.withMutable = withMutable;
 var ChangelingImpl = /** @class */ (function () {
     function ChangelingImpl(locator) {
         this.onChanges = {};

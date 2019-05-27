@@ -14,7 +14,7 @@ interface ChangeableComponentWithPropsGeneral<T> {
 }
 /** Interface for component with the changeable value in the state */
 interface ChangeableComponentWithState<T> {
-    setState: (func: (state: T) => T) => void;
+    setState: (func: (state: T) => any) => void;
     state: T;
 }
 export interface Controller<T> {
@@ -49,4 +49,5 @@ export declare function forComponentState<T>(component: ChangeableComponentWithS
  */
 export declare function forComponentState<T, K extends KEY<T>>(component: ChangeableComponentWithState<T>, property: K): Controller<PROPERTY<T, K>>;
 export declare function withFuncs<T>(value: () => T, onChange: (newValue: T) => void): Controller<T>;
+export declare function withMutable<T extends object>(value: T): Controller<T>;
 export {};

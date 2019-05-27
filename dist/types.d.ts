@@ -5,3 +5,9 @@
 export declare type KEYABLE<T> = T extends object ? T : never;
 export declare type KEY<T> = keyof KEYABLE<T>;
 export declare type PROPERTY<T, K extends keyof KEYABLE<T>> = KEYABLE<T>[K];
+/** Add a property named 'this' that is of the type of the given T */
+export declare type ANDTHIS<T> = T & {
+    this: T;
+};
+/** Like PROPERTY<T, K> but includes support for the magic `this` property that refers to the type T itself */
+export declare type ANDTHISPROPERTY<T, K extends KEY<T> | 'this'> = K extends 'this' ? T : PROPERTY<T, Exclude<K, 'this'>>;
