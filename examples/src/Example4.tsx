@@ -2,7 +2,7 @@
  * An example of using Changeling with non-standard input elements.
  */
 
-import { forComponentState, CheckableInput } from 'changeling'
+import { forComponentState, Input, Controller } from 'changeling'
 import * as React from 'react'
 
 interface MyFormState {
@@ -28,32 +28,32 @@ export default class Example4 extends React.Component<{}, MyFormState> {
 			<div>
 				<h1>Example 4</h1>
 				<div>
-					<label><CheckableInput 
+					<label><Input.Checkable 
 						type="checkbox" 
 						name="likeAnimals" 
-						value={true} 
+						checkedValue={true} 
+						uncheckedValue={false}
 						controller={this.controller} 
 						prop="likeAnimals" 
-						convert={this.toBoolean}
 					/> Like animals</label>
 				</div>
 				<div>
 					<label>Favourite animal:</label>
 					<label>
-						<CheckableInput type="radio" name="favouriteAnimal" value="Giraffe" controller={this.controller} prop="favouriteAnimal" />
+						<Input.Checkable type="radio" name="favouriteAnimal" checkedValue="Giraffe" controller={this.controller} prop="favouriteAnimal" />
 						Giraffe
 					</label>
 					<label>
-						<CheckableInput type="radio" name="favouriteAnimal" value="Cat" controller={this.controller} prop="favouriteAnimal" />
+						<Input.Checkable type="radio" name="favouriteAnimal" checkedValue="Cat" controller={this.controller} prop="favouriteAnimal" />
 						Cat
 					</label>
 					<label>
-						<CheckableInput type="radio" name="favouriteAnimal" value="Dog" controller={this.controller} prop="favouriteAnimal" />
+						<Input.Checkable type="radio" name="favouriteAnimal" checkedValue="Dog" controller={this.controller} prop="favouriteAnimal" />
 						Dog
 					</label>
 				</div>
 				<h2>Summary</h2>
-				<div>Like animals: {this.state.likeAnimals} {typeof this.state.likeAnimals}</div>
+				<div>Like animals: {`${this.state.likeAnimals}`} ({typeof this.state.likeAnimals})</div>
 				<div>Favourite animal: {this.state.favouriteAnimal}</div>
 			</div>
 		)

@@ -19,7 +19,7 @@ interface ChangeableComponentWithPropsGeneral<T> {
 
 /** Interface for component with the changeable value in the state */
 interface ChangeableComponentWithState<T> {
-	setState: (func: (state: T) => T) => void
+	setState: (func: (state: T) => any) => void
 	state: T
 }
 
@@ -91,6 +91,25 @@ export function withFuncs<T>(value: () => T, onChange: (newValue: T) => void): C
 	return new ChangelingImpl(() => ({
 		onChange,
 		value: value(),
+	}))
+}
+
+export function withMutable<T extends object>(value: T): Controller<T> {
+	return new ChangelingImpl(() => ({
+		onChange: (newValue: T) => {
+			for (let i in value) {
+				if (value.hasOwnProperty(i)) {
+					delete value[i]
+				}
+			}
+
+			for (let i in newValue) {
+				if (newValue.hasOwnProperty(i)) {
+					value[i] = newValue[i]
+				}
+			}
+		},
+		value,
 	}))
 }
 
