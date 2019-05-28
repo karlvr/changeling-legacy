@@ -277,6 +277,55 @@ var SelectWrapper = /** @class */ (function (_super) {
     };
     return SelectWrapper;
 }(React.Component));
+var Indexed = /** @class */ (function (_super) {
+    __extends(Indexed, _super);
+    function Indexed() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Indexed.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, renderEach = _a.renderEach, renderBefore = _a.renderBefore, renderAfter = _a.renderAfter;
+        var actualController = prop !== 'this' ? controller.controller(prop) : controller;
+        var snapshot = actualController.snapshot();
+        var arrayValue = snapshot.value;
+        if (arrayValue === undefined) {
+            arrayValue = [];
+        }
+        if (arrayValue.length === undefined) {
+            arrayValue = [arrayValue];
+        }
+        if (renderEach === undefined) {
+            throw 'renderFunc not defined';
+        }
+        var actions = {
+            onPush: function (value) {
+                snapshot.onChange(arrayValue.concat([value]));
+            },
+            onInsert: function (index, value) {
+                var newArrayValue = arrayValue.slice();
+                newArrayValue.splice(index, 0, value);
+                snapshot.onChange(newArrayValue);
+            },
+            onRemove: function (index) {
+                var newArrayValue = arrayValue.slice();
+                newArrayValue.splice(index, 1);
+                snapshot.onChange(newArrayValue);
+            },
+        };
+        return (React.createElement(React.Fragment, null,
+            renderBefore ? renderBefore(actions) : null,
+            arrayValue.map(function (v, i) {
+                var indexController = actualController.controller(i);
+                var cursor = {
+                    index: i,
+                    first: i === 0,
+                    last: i === arrayValue.length - 1,
+                };
+                return renderEach(indexController, cursor, actions);
+            }),
+            renderAfter ? renderAfter(actions) : null));
+    };
+    return Indexed;
+}(React.Component));
 exports.Input = {
     Checkable: wrapComponent(CheckableInput),
     Generic: wrapComponentConvert(StringInput),
@@ -288,6 +337,7 @@ exports.Input = {
     TextArea: wrapComponent(StringTextArea),
     TextAreaGeneric: wrapComponentConvert(StringTextArea),
     Select: SelectWrapper,
+    Indexed: Indexed,
 };
 /* Testing */
 function test() {

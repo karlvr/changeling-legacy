@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Snapshot, Controller } from './changeling';
 import { Omit } from './utilities';
-import { KEY, KEYABLE, ANDTHIS, PROPERTYORTHIS, KEYORTHIS } from './types';
+import { KEY, KEYABLE, ANDTHIS, PROPERTYORTHIS, KEYORTHIS, INDEXPROPERTY } from './types';
 /**
  * Fake interface for React.InputHTMLAttributes<HTMLInputElement> that defines all of the properties that we exclude using Omit etc.
  * Because if we use React.InputHTMLAttributes<HTMLInputElement> TypeScript includes all of the known properties in the output declaration
@@ -62,6 +62,27 @@ interface SelectWrapperProps<T, K extends KEYORTHIS<T>, O extends OptionType<PRO
 declare class SelectWrapper<T, K extends KEYORTHIS<T>, O extends OptionType<PROPERTYORTHIS<T, K>>> extends React.Component<SelectWrapperProps<T, K, O>> {
     render(): JSX.Element;
 }
+export interface IndexedCursor {
+    index: number;
+    first: boolean;
+    last: boolean;
+}
+export declare type IndexedOnPush<V> = (value: V) => void;
+export declare type IndexedOnInsert<V> = (index: number, value: V) => void;
+export declare type IndexedOnRemove<V> = (index: number) => void;
+export interface IndexedActions<V> {
+    onPush: IndexedOnPush<V>;
+    onInsert: IndexedOnInsert<V>;
+    onRemove: IndexedOnRemove<V>;
+}
+interface IndexedProps<T, K extends KEYORTHIS<T>> extends ControllerProps<T, K> {
+    renderEach?: (controller: Controller<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>, cursor: IndexedCursor, actions: IndexedActions<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>) => JSX.Element;
+    renderBefore?: (actions: IndexedActions<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>) => JSX.Element;
+    renderAfter?: (actions: IndexedActions<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>) => JSX.Element;
+}
+declare class Indexed<T, K extends KEYORTHIS<T>> extends React.Component<IndexedProps<T, K>> {
+    render(): JSX.Element;
+}
 export declare const Input: {
     Checkable: <T, K extends NonNullable<{ [P in keyof ANDTHIS<T>]: NonNullable<ANDTHIS<T>[P]> extends {} ? P : never; }["this" | keyof T]>>(props: Pick<CheckableInputProps<{}>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "checked" | "onChange"> | "checkedValue" | "uncheckedValue"> & {
         controller: Controller<T>;
@@ -91,5 +112,6 @@ export declare const Input: {
     }) => JSX.Element;
     TextAreaGeneric: <T, K extends "this" | keyof KEYABLE<T>>(props: Pick<Pick<BaseTextAreaProps<string>, "onChange" | "value" | Exclude<keyof React.TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange">>, Exclude<keyof React.TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange">> & WrapComponentConvertType<T, K, string>) => JSX.Element;
     Select: typeof SelectWrapper;
+    Indexed: typeof Indexed;
 };
 export {};
