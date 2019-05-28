@@ -9,5 +9,6 @@ export declare type PROPERTY<T, K extends keyof KEYABLE<T>> = KEYABLE<T>[K];
 export declare type ANDTHIS<T> = T & {
     this: T;
 };
+export declare type KEYORTHIS<T> = KEY<T> | 'this';
 /** Like PROPERTY<T, K> but includes support for the magic `this` property that refers to the type T itself */
-export declare type ANDTHISPROPERTY<T, K extends KEY<T> | 'this'> = K extends 'this' ? T : PROPERTY<T, Exclude<K, 'this'>>;
+export declare type PROPERTYORTHIS<T, K extends KEY<T> | 'this'> = K extends 'this' ? T : PROPERTY<T, Exclude<K, 'this'>>;

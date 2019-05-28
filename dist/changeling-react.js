@@ -41,6 +41,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __importStar(require("react"));
+var changeling_1 = require("./changeling");
 function wrapComponent(Component) {
     return function (props) {
         var controller = props.controller, prop = props.prop, rest = __rest(props, ["controller", "prop"]);
@@ -216,6 +217,66 @@ var StringTextArea = /** @class */ (function (_super) {
     };
     return StringTextArea;
 }(React.Component));
+function isOptionTypeObject(o) {
+    return !isPrimitiveOptionType(o);
+}
+function isPrimitiveOptionType(o) {
+    return typeof o === 'string' || typeof o === 'number';
+}
+var Select = /** @class */ (function (_super) {
+    __extends(Select, _super);
+    function Select() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.onChange = function (evt) {
+            var selectedIndex = evt.target.selectedIndex;
+            /* Convert the selected index to an option index (in our this.props.options), in case the select's options aren't what we expected */
+            var selectedItem = selectedIndex !== -1 ? evt.target.options.item(selectedIndex) : null;
+            var selectedOptionIndex = selectedItem ? parseInt(selectedItem.value, 10) : -1;
+            var newValue = undefined;
+            if (selectedOptionIndex !== -1 && _this.props.options) {
+                var selectedOption = _this.props.options[selectedOptionIndex];
+                if (isOptionTypeObject(selectedOption)) {
+                    newValue = selectedOption.value;
+                }
+                else if (isPrimitiveOptionType(selectedOption)) {
+                    newValue = selectedOption;
+                }
+                else {
+                    console.error('Select has unexpected option type');
+                }
+            }
+            _this.props.onChange(newValue);
+        };
+        return _this;
+    }
+    Select.prototype.render = function () {
+        var _a = this.props, value = _a.value, onChange = _a.onChange, options = _a.options, rest = __rest(_a, ["value", "onChange", "options"]);
+        /* We don't use option values, we just use their indexes, so we don't have to convert things to strings */
+        var selectedIndex = options ? options.findIndex(function (o) { return isOptionTypeObject(o) ? o.value === value : isPrimitiveOptionType(o) ? o === value : false; }) : -1;
+        return (React.createElement("select", __assign({ onChange: this.onChange, value: selectedIndex !== undefined ? selectedIndex : '' }, rest), (options || []).map(function (item, index) {
+            if (isOptionTypeObject(item)) {
+                return (React.createElement("option", { key: index, value: index, label: item.label }, item.text || item.value));
+            }
+            else if (isPrimitiveOptionType(item)) {
+                return (React.createElement("option", { key: index, value: index }, item));
+            }
+        })));
+    };
+    return Select;
+}(React.Component));
+var SelectWrapper = /** @class */ (function (_super) {
+    __extends(SelectWrapper, _super);
+    function SelectWrapper() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    /* Had to wrap this manually as the HOC loses the type on the options, as it has to bind the Changeable generic type before it know which prop, so it gives it {} */
+    SelectWrapper.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, rest = __rest(_a, ["controller", "prop"]);
+        var snapshot = prop !== 'this' ? controller.snapshot(prop) : controller.snapshot();
+        return (React.createElement(Select, __assign({ value: snapshot.value, onChange: snapshot.onChange }, rest)));
+    };
+    return SelectWrapper;
+}(React.Component));
 exports.Input = {
     Checkable: wrapComponent(CheckableInput),
     Generic: wrapComponentConvert(StringInput),
@@ -226,4 +287,25 @@ exports.Input = {
     LazyNumber: wrapComponent(LazyNumberInput),
     TextArea: wrapComponent(StringTextArea),
     TextAreaGeneric: wrapComponentConvert(StringTextArea),
+    Select: SelectWrapper,
 };
+/* Testing */
+function test() {
+    var value = {
+        name: '',
+        age: 0,
+        works: false,
+    };
+    var c = changeling_1.withMutable(value);
+    var jsx1 = (React.createElement(React.Fragment, null,
+        React.createElement(exports.Input.String, { controller: c.controller('name'), prop: "this" }),
+        React.createElement(exports.Input.Generic, { controller: c, prop: "this", convert: function (v) { return value; } }),
+        React.createElement(exports.Input.LazyString, { controller: c.controller('name'), prop: "this" }),
+        React.createElement(exports.Input.LazyGeneric, { controller: c.controller('age'), prop: "this", convert: function (value) { return parseInt(value); }, display: function (value) { return value !== undefined ? "" + value : ''; } }),
+        React.createElement(exports.Input.LazyString, { controller: c, prop: "name" }),
+        React.createElement(exports.Input.LazyGeneric, { controller: c, prop: "age", convert: function (value) { return parseInt(value); }, display: function (value) { return value !== undefined ? "" + value : ''; } }),
+        React.createElement(exports.Input.TextArea, { controller: c, prop: "name" }),
+        React.createElement(exports.Input.Select, { controller: c, prop: "name", options: ['John', 'Frank'] }),
+        "Should break",
+        React.createElement(exports.Input.Select, { controller: c, prop: "age", options: [{ key: 34, value: 34 }] })));
+}
