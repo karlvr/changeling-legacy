@@ -62,12 +62,28 @@ var ChangelingImpl = /** @class */ (function () {
         this.setters = {};
         this.locator = locator;
     }
-    ChangelingImpl.prototype.snapshot = function (name) {
+    ChangelingImpl.prototype.snapshot = function (nameOrIndex, index) {
         var _this = this;
-        if (name !== undefined) {
-            var onChange = this.propOnChange(name);
-            var value = this.value !== undefined ? this.value[name] : undefined;
-            var getter = this.getters[name];
+        if (typeof nameOrIndex === 'number') {
+            var onChange = function (newValue) {
+                var parentNewValue = immer_1.produce(_this.value, function (draft) {
+                    draft[nameOrIndex] = newValue;
+                });
+                _this.onChange(parentNewValue);
+            };
+            var value = this.value !== undefined ? this.value[nameOrIndex] : undefined;
+            return {
+                onChange: onChange,
+                value: value,
+            };
+        }
+        else if (nameOrIndex !== undefined && index !== undefined) {
+            return this.controller(nameOrIndex).snapshot(index);
+        }
+        else if (nameOrIndex !== undefined) {
+            var onChange = this.propOnChange(nameOrIndex);
+            var value = this.value !== undefined ? this.value[nameOrIndex] : undefined;
+            var getter = this.getters[nameOrIndex];
             if (getter) {
                 value = getter(value);
             }
@@ -90,9 +106,17 @@ var ChangelingImpl = /** @class */ (function () {
         this.setters[name] = func;
         delete this.onChanges[name];
     };
-    ChangelingImpl.prototype.controller = function (name) {
+    ChangelingImpl.prototype.controller = function (nameOrIndex, index) {
         var _this = this;
-        return new ChangelingImpl(function () { return _this.snapshot(name); });
+        if (typeof nameOrIndex === 'number') {
+            return new ChangelingImpl(function () { return _this.snapshot(nameOrIndex); });
+        }
+        else if (index !== undefined) {
+            return this.controller(nameOrIndex).controller(index);
+        }
+        else {
+            return new ChangelingImpl(function () { return _this.snapshot(nameOrIndex); });
+        }
     };
     Object.defineProperty(ChangelingImpl.prototype, "value", {
         get: function () {

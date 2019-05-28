@@ -12,3 +12,5 @@ export declare type ANDTHIS<T> = T & {
 export declare type KEYORTHIS<T> = KEY<T> | 'this';
 /** Like PROPERTY<T, K> but includes support for the magic `this` property that refers to the type T itself */
 export declare type PROPERTYORTHIS<T, K extends KEY<T> | 'this'> = K extends 'this' ? T : PROPERTY<T, Exclude<K, 'this'>>;
+/** Returns the component type of an indexed type, or never if the type isn't indexable */
+export declare type INDEXPROPERTY<T> = T extends (infer R)[] ? R : never;
