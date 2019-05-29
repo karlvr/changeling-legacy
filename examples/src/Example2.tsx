@@ -26,7 +26,7 @@ interface Address {
 	line1: string
 	line2: string
 	city: string
-	postcode: number
+	postcode?: number
 	country: string
 }
 
@@ -41,7 +41,7 @@ export default class Example2 extends React.Component<{}, MyFormState> {
 	public render() {
 		return (
 			<div>
-				<h1>Example 2</h1>
+				<h1>Example 2: Complex</h1>
 
 				<PersonalDetailsComponent controller={this.controller} prop="personalDetails" />
 				<WorkDetailsComponent controller={this.controller} prop="workDetails" />
@@ -73,7 +73,7 @@ export default class Example2 extends React.Component<{}, MyFormState> {
 
 }
 
-const AddressComponent = wrapComponent(class AddressComponentImpl extends React.Component<Snapshot<Address>> {
+const AddressComponent = wrapComponent(class AddressComponentImpl extends React.Component<Snapshot<Address | undefined>> {
 
 	private controller = forComponentProps(this)
 
@@ -93,10 +93,10 @@ const AddressComponent = wrapComponent(class AddressComponentImpl extends React.
 					<label>City</label>
 					<Input.String controller={this.controller} prop="city" />
 				</div>
-				{/* <div>
+				<div>
 					<label>Postcode</label>
-					<Input.LazyGeneric controller={this.controller} prop="postcode" convert={this.toNumber} />
-				</div> */}
+					<Input.LazyNumber controller={this.controller} prop="postcode" />
+				</div>
 				<div>
 					<label>Country</label>
 					<Input.String controller={this.controller} prop="country" />
@@ -115,7 +115,7 @@ const AddressComponent = wrapComponent(class AddressComponentImpl extends React.
 
 })
 
-const PersonalDetailsComponent = wrapComponent(class PersonalDetailsComponentImpl extends React.Component<Snapshot<PersonalDetails>> {
+const PersonalDetailsComponent = wrapComponent(class PersonalDetailsComponentImpl extends React.Component<Snapshot<PersonalDetails | undefined>> {
 
 	private controller = forComponentProps(this)
 
@@ -138,7 +138,7 @@ const PersonalDetailsComponent = wrapComponent(class PersonalDetailsComponentImp
 
 })
 
-const WorkDetailsComponent = wrapComponent(class WorkDetailsComponentImpl extends React.Component<Snapshot<WorkDetails>> {
+const WorkDetailsComponent = wrapComponent(class WorkDetailsComponentImpl extends React.Component<Snapshot<WorkDetails | undefined>> {
 
 	private controller = forComponentProps(this)
 
