@@ -50,26 +50,6 @@ function wrapComponent(Component) {
     };
 }
 exports.wrapComponent = wrapComponent;
-function wrapComponentConvert(Component) {
-    return function (props) {
-        var controller = props.controller, prop = props.prop, convert = props.convert, display = props.display, rest = __rest(props, ["controller", "prop", "convert", "display"]);
-        var c = prop !== 'this' ? controller.snapshot(prop) : controller.snapshot();
-        return (React.createElement(Component, __assign({ value: display ? display(c.value) : c.value, onChange: function (value) { c.onChange(convert(value)); } }, rest)));
-    };
-}
-/**
- * Convert a component that accepts values of type R to a component that accepts values of type S.
- * @param Component A component that accepts a Snapshot<R>
- * @param convert A function to convert from R to S
- * @param display A function to convert from S to R
- */
-function convertComponent(Component, convert, display) {
-    return function (props) {
-        var value = props.value, onChange = props.onChange, rest = __rest(props, ["value", "onChange"]);
-        return (React.createElement(Component, __assign({ value: display ? display(value) : value, onChange: function (value) { onChange(convert(value)); } }, rest)));
-    };
-}
-exports.convertComponent = convertComponent;
 var BaseInput = /** @class */ (function (_super) {
     __extends(BaseInput, _super);
     function BaseInput() {
@@ -78,20 +58,28 @@ var BaseInput = /** @class */ (function (_super) {
             _this.props.onChange(_this.convertValue(evt.target.value));
         };
         _this.convertValue = function (value) {
-            if (_this.props.convert) {
-                return _this.props.convert(value);
-            }
-            else {
-                return value;
-            }
+            return _this.props.convert(value);
         };
         return _this;
     }
     BaseInput.prototype.render = function () {
-        var _a = this.props, value = _a.value, onChange = _a.onChange, convert = _a.convert, rest = __rest(_a, ["value", "onChange", "convert"]);
-        return (React.createElement("input", __assign({ value: value !== undefined && value !== null ? "" + value : '', onChange: this.onChange }, rest)));
+        var _a = this.props, value = _a.value, onChange = _a.onChange, convert = _a.convert, display = _a.display, rest = __rest(_a, ["value", "onChange", "convert", "display"]);
+        var displayValue = display(value);
+        return (React.createElement("input", __assign({ value: displayValue, onChange: this.onChange }, rest)));
     };
     return BaseInput;
+}(React.Component));
+var BaseInputWrapper = /** @class */ (function (_super) {
+    __extends(BaseInputWrapper, _super);
+    function BaseInputWrapper() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    BaseInputWrapper.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, rest = __rest(_a, ["controller", "prop"]);
+        var snapshot = prop !== 'this' ? controller.snapshot(prop) : controller.snapshot();
+        return (React.createElement(BaseInput, __assign({ value: snapshot.value, onChange: snapshot.onChange }, rest)));
+    };
+    return BaseInputWrapper;
 }(React.Component));
 var StringInput = /** @class */ (function (_super) {
     __extends(StringInput, _super);
@@ -100,11 +88,46 @@ var StringInput = /** @class */ (function (_super) {
     }
     StringInput.prototype.render = function () {
         var rest = __rest(this.props, []);
-        return (React.createElement(BaseInput, __assign({}, rest)));
+        return (React.createElement(BaseInput, __assign({ convert: function (value) { return value !== '' ? value : undefined; }, display: function (value) { return value !== undefined ? value : ''; } }, rest)));
     };
     return StringInput;
 }(React.Component));
-var NumberInput = convertComponent(StringInput, function (value) { return parseInt(value); }, function (value) { return value !== undefined ? "" + value : ''; });
+var StringInputWrapper = /** @class */ (function (_super) {
+    __extends(StringInputWrapper, _super);
+    function StringInputWrapper() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    StringInputWrapper.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, rest = __rest(_a, ["controller", "prop"]);
+        var snapshot = prop !== 'this' ? controller.snapshot(prop) : controller.snapshot();
+        return (React.createElement(StringInput, __assign({ value: snapshot.value, onChange: snapshot.onChange }, rest)));
+    };
+    return StringInputWrapper;
+}(React.Component));
+var NumberInput = /** @class */ (function (_super) {
+    __extends(NumberInput, _super);
+    function NumberInput() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    NumberInput.prototype.render = function () {
+        var rest = __rest(this.props, []);
+        return (React.createElement(BaseInput, __assign({ convert: function (value) {
+                var result = parseInt(value, 10);
+                if (!isNaN(result)) {
+                    return result;
+                }
+                return undefined;
+            }, display: function (value) {
+                if (value !== undefined) {
+                    return "" + value;
+                }
+                else {
+                    return '';
+                }
+            } }, rest)));
+    };
+    return NumberInput;
+}(React.Component));
 var CheckableInput = /** @class */ (function (_super) {
     __extends(CheckableInput, _super);
     function CheckableInput() {
@@ -130,46 +153,41 @@ var LazyBaseInput = /** @class */ (function (_super) {
     function LazyBaseInput() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.onBlur = function (evt) {
-            var onChange = _this.props.onChange;
-            var value = _this.convertValue(evt.target.value);
+            var _a = _this.props, onChange = _a.onChange, convert = _a.convert, display = _a.display;
+            var value = convert(evt.target.value);
             if (value !== undefined) {
                 onChange(value);
             }
             else if (evt.target.value === '') {
+                /* The converted result was undefined, and the input was empty, so we change to undefined */
                 onChange(undefined);
             }
             else {
-                evt.target.value = _this.displayValue(_this.props.value);
+                /* The converted result was undefined, but our input wasn't empty, so we assume an error and reset the value */
+                evt.target.value = display(_this.props.value);
                 evt.target.select();
-            }
-        };
-        _this.displayValue = function (value) {
-            if (_this.props.display) {
-                return _this.props.display(value);
-            }
-            if (value !== undefined && value !== null) {
-                return "" + value;
-            }
-            else {
-                return '';
-            }
-        };
-        _this.convertValue = function (value) {
-            if (_this.props.convert) {
-                return _this.props.convert(value);
-            }
-            else {
-                return value;
             }
         };
         return _this;
     }
     LazyBaseInput.prototype.render = function () {
-        var _a = this.props, value = _a.value, onChange = _a.onChange, rest = __rest(_a, ["value", "onChange"]);
-        var displayValue = this.displayValue(value);
+        var _a = this.props, value = _a.value, onChange = _a.onChange, convert = _a.convert, display = _a.display, rest = __rest(_a, ["value", "onChange", "convert", "display"]);
+        var displayValue = display(value);
         return (React.createElement("input", __assign({ key: displayValue, defaultValue: displayValue, onBlur: this.onBlur }, rest)));
     };
     return LazyBaseInput;
+}(React.Component));
+var LazyBaseInputWrapper = /** @class */ (function (_super) {
+    __extends(LazyBaseInputWrapper, _super);
+    function LazyBaseInputWrapper() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    LazyBaseInputWrapper.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, rest = __rest(_a, ["controller", "prop"]);
+        var snapshot = prop !== 'this' ? controller.snapshot(prop) : controller.snapshot();
+        return (React.createElement(LazyBaseInput, __assign({ value: snapshot.value, onChange: snapshot.onChange }, rest)));
+    };
+    return LazyBaseInputWrapper;
 }(React.Component));
 var LazyStringInput = /** @class */ (function (_super) {
     __extends(LazyStringInput, _super);
@@ -178,33 +196,61 @@ var LazyStringInput = /** @class */ (function (_super) {
     }
     LazyStringInput.prototype.render = function () {
         var rest = __rest(this.props, []);
-        return (React.createElement(LazyBaseInput, __assign({}, rest)));
+        return (React.createElement(LazyBaseInput, __assign({ convert: function (value) { return value !== '' ? value : undefined; }, display: function (value) { return value !== undefined ? value : ''; } }, rest)));
     };
     return LazyStringInput;
 }(React.Component));
-var LazyNumberInput = convertComponent(LazyStringInput, function (value) { return parseInt(value); }, function (value) { return value !== undefined ? "" + value : ''; });
+var LazyNumberInput = /** @class */ (function (_super) {
+    __extends(LazyNumberInput, _super);
+    function LazyNumberInput() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    LazyNumberInput.prototype.render = function () {
+        var rest = __rest(this.props, []);
+        return (React.createElement(LazyBaseInput, __assign({ convert: function (value) {
+                var result = parseInt(value, 10);
+                if (!isNaN(result)) {
+                    return result;
+                }
+                return undefined;
+            }, display: function (value) {
+                if (value !== undefined) {
+                    return "" + value;
+                }
+                else {
+                    return '';
+                }
+            } }, rest)));
+    };
+    return LazyNumberInput;
+}(React.Component));
 var BaseTextArea = /** @class */ (function (_super) {
     __extends(BaseTextArea, _super);
     function BaseTextArea() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.onChange = function (evt) {
-            _this.props.onChange(_this.convertValue(evt.target.value));
-        };
-        _this.convertValue = function (value) {
-            if (_this.props.convert) {
-                return _this.props.convert(value);
-            }
-            else {
-                return value;
-            }
+            _this.props.onChange(_this.props.convert(evt.target.value));
         };
         return _this;
     }
     BaseTextArea.prototype.render = function () {
-        var _a = this.props, value = _a.value, onChange = _a.onChange, convert = _a.convert, rest = __rest(_a, ["value", "onChange", "convert"]);
-        return (React.createElement("textarea", __assign({ value: value !== undefined && value !== null ? "" + value : '', onChange: this.onChange }, rest)));
+        var _a = this.props, value = _a.value, onChange = _a.onChange, convert = _a.convert, display = _a.display, rest = __rest(_a, ["value", "onChange", "convert", "display"]);
+        var displayValue = display(value);
+        return (React.createElement("textarea", __assign({ value: displayValue, onChange: this.onChange }, rest)));
     };
     return BaseTextArea;
+}(React.Component));
+var BaseTextAreaWrapper = /** @class */ (function (_super) {
+    __extends(BaseTextAreaWrapper, _super);
+    function BaseTextAreaWrapper() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    BaseTextAreaWrapper.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, rest = __rest(_a, ["controller", "prop"]);
+        var snapshot = prop !== 'this' ? controller.snapshot(prop) : controller.snapshot();
+        return (React.createElement(BaseTextArea, __assign({ value: snapshot.value, onChange: snapshot.onChange }, rest)));
+    };
+    return BaseTextAreaWrapper;
 }(React.Component));
 var StringTextArea = /** @class */ (function (_super) {
     __extends(StringTextArea, _super);
@@ -213,7 +259,7 @@ var StringTextArea = /** @class */ (function (_super) {
     }
     StringTextArea.prototype.render = function () {
         var rest = __rest(this.props, []);
-        return (React.createElement(BaseTextArea, __assign({}, rest)));
+        return (React.createElement(BaseTextArea, __assign({ convert: function (value) { return value !== '' ? value : undefined; }, display: function (value) { return value !== undefined ? value : ''; } }, rest)));
     };
     return StringTextArea;
 }(React.Component));
@@ -325,14 +371,14 @@ var Indexed = /** @class */ (function (_super) {
 }(React.Component));
 exports.Input = {
     Checkable: wrapComponent(CheckableInput),
-    Generic: wrapComponentConvert(StringInput),
+    Generic: BaseInputWrapper,
     String: wrapComponent(StringInput),
     Number: wrapComponent(NumberInput),
-    LazyGeneric: wrapComponentConvert(LazyStringInput),
+    LazyGeneric: LazyBaseInputWrapper,
     LazyString: wrapComponent(LazyStringInput),
     LazyNumber: wrapComponent(LazyNumberInput),
     TextArea: wrapComponent(StringTextArea),
-    TextAreaGeneric: wrapComponentConvert(StringTextArea),
+    TextAreaGeneric: BaseTextAreaWrapper,
     Select: SelectWrapper,
     Indexed: Indexed,
 };
@@ -346,13 +392,33 @@ function test() {
     var c = changeling_1.withMutable(value);
     var jsx1 = (React.createElement(React.Fragment, null,
         React.createElement(exports.Input.String, { controller: c.controller('name'), prop: "this" }),
-        React.createElement(exports.Input.Generic, { controller: c, prop: "this", convert: function (v) { return value; } }),
+        React.createElement(exports.Input.Number, { controller: c.controller('age'), prop: "this" }),
+        React.createElement(exports.Input.Generic, { controller: c, prop: "this", convert: function (v) { return JSON.parse(v); }, display: function (v) { return JSON.stringify(v); } }),
         React.createElement(exports.Input.LazyString, { controller: c.controller('name'), prop: "this" }),
-        React.createElement(exports.Input.LazyGeneric, { controller: c.controller('age'), prop: "this", convert: function (value) { return parseInt(value); }, display: function (value) { return value !== undefined ? "" + value : ''; } }),
+        React.createElement(exports.Input.LazyGeneric, { controller: c.controller('age'), prop: "this", convert: function (value) { return parseInt(value); }, display: function (value) { return "" + value; } }),
         React.createElement(exports.Input.LazyString, { controller: c, prop: "name" }),
-        React.createElement(exports.Input.LazyGeneric, { controller: c, prop: "age", convert: function (value) { return parseInt(value); }, display: function (value) { return value !== undefined ? "" + value : ''; } }),
+        React.createElement(exports.Input.LazyNumber, { controller: c, prop: "age" }),
+        React.createElement(exports.Input.LazyGeneric, { controller: c, prop: "age", convert: function (value) { return parseInt(value); }, display: function (value) { return "" + value; } }),
         React.createElement(exports.Input.TextArea, { controller: c, prop: "name" }),
         React.createElement(exports.Input.Select, { controller: c, prop: "name", options: ['John', 'Frank'] }),
         "Should break",
         React.createElement(exports.Input.Select, { controller: c, prop: "age", options: [{ key: 34, value: 34 }] })));
+    var value2 = {};
+    var c2 = changeling_1.withMutable(value2);
+    var c2sub = c2.controller('sub');
+    var jsx2 = (React.createElement(React.Fragment, null,
+        React.createElement(exports.Input.String, { controller: c2.controller('name'), prop: "this" }),
+        React.createElement(exports.Input.Number, { controller: c2.controller('age'), prop: "this" }),
+        React.createElement(exports.Input.Generic, { controller: c2, prop: "this", convert: function (v) { return JSON.parse(v); }, display: function (v) { return JSON.stringify(v); } }),
+        React.createElement(exports.Input.LazyString, { controller: c2.controller('name'), prop: "this" }),
+        React.createElement(exports.Input.LazyGeneric, { controller: c2.controller('age'), prop: "this", convert: function (value) { return parseInt(value); }, display: function (value) { return "" + value; } }),
+        React.createElement(exports.Input.LazyString, { controller: c2, prop: "name" }),
+        React.createElement(exports.Input.LazyNumber, { controller: c2, prop: "age" }),
+        React.createElement(exports.Input.LazyGeneric, { controller: c2, prop: "age", convert: function (value) { return parseInt(value); }, display: function (value) { return "" + value; } }),
+        React.createElement(exports.Input.TextArea, { controller: c2, prop: "name" }),
+        React.createElement(exports.Input.Select, { controller: c2, prop: "name", options: ['John', 'Frank'] }),
+        React.createElement(exports.Input.String, { controller: c2sub, prop: "subname" }),
+        React.createElement(StringInputWrapper, { controller: c2sub, prop: "subname" }),
+        "Should break",
+        React.createElement(exports.Input.Select, { controller: c2, prop: "age", options: [{ key: 34, value: 34 }] })));
 }
