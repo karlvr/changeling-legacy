@@ -293,9 +293,6 @@ var Indexed = /** @class */ (function (_super) {
         if (arrayValue.length === undefined) {
             arrayValue = [arrayValue];
         }
-        if (renderEach === undefined) {
-            throw 'renderFunc not defined';
-        }
         var actions = {
             onPush: function (value) {
                 snapshot.onChange(arrayValue.concat([value]));
@@ -313,7 +310,7 @@ var Indexed = /** @class */ (function (_super) {
         };
         return (React.createElement(React.Fragment, null,
             renderBefore ? renderBefore(actions) : null,
-            arrayValue.map(function (v, i) {
+            renderEach ? arrayValue.map(function (v, i) {
                 var indexController = actualController.controller(i);
                 var cursor = {
                     index: i,
@@ -321,7 +318,7 @@ var Indexed = /** @class */ (function (_super) {
                     last: i === arrayValue.length - 1,
                 };
                 return renderEach(indexController, cursor, actions);
-            }),
+            }) : null,
             renderAfter ? renderAfter(actions) : null));
     };
     return Indexed;
