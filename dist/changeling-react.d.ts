@@ -12,11 +12,10 @@ import { PROPERTYORTHIS, KEYORTHIS, INDEXPROPERTY, COMPATIBLEKEYS } from './type
  *
  * If any exclusions are added in this class they must be added here.
  */
-export interface WrappedComponentProps<T, K extends COMPATIBLEKEYS<T, R>, R> {
+export declare function wrapComponent<R, P extends Snapshot<R>>(Component: React.ComponentType<Snapshot<R> & P>): <T, K extends COMPATIBLEKEYS<T, R>>(props: Pick<P, Exclude<keyof P, "onChange" | "value">> & {
     controller: Controller<T>;
     prop: K;
-}
-export declare function wrapComponent<R, P extends Snapshot<R>>(Component: React.ComponentType<Snapshot<R> & P>): <T, K extends COMPATIBLEKEYS<T, R>>(props: Pick<P, Exclude<keyof P, "onChange" | "value">> & WrappedComponentProps<T, K, R>) => JSX.Element;
+}) => JSX.Element;
 interface BaseInputProps<T> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'convert'>, Snapshot<T> {
     convert: (value: string) => T;
     display: (value: T) => string;
@@ -28,9 +27,12 @@ interface BaseInputWrapperProps<T, K extends KEYORTHIS<T>, V> extends Omit<React
 declare class BaseInputWrapper<T, K extends KEYORTHIS<T>, V extends PROPERTYORTHIS<T, K>> extends React.Component<BaseInputWrapperProps<T, K, V>> {
     render(): JSX.Element;
 }
-interface CheckableInputProps<T> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'checked' | 'onChange' | 'value'>, Snapshot<T> {
-    checkedValue: T;
-    uncheckedValue?: T;
+interface CheckableInputWrapperProps<T, K extends KEYORTHIS<T>, V> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'checked' | 'onChange' | 'value'>, ControllerProps<T, K> {
+    checkedValue: V;
+    uncheckedValue?: V;
+}
+declare class CheckableInputWrapper<T, K extends KEYORTHIS<T>, C extends PROPERTYORTHIS<T, K>> extends React.Component<CheckableInputWrapperProps<T, K, C>> {
+    render(): JSX.Element;
 }
 interface LazyBaseInputProps<T> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'defaultValue' | 'onBlur' | 'convert' | 'display'>, Snapshot<T> {
     convert: (value: string) => T;
@@ -95,14 +97,29 @@ declare class Indexed<T, K extends KEYORTHIS<T>> extends React.Component<Indexed
     render(): JSX.Element;
 }
 export declare const Input: {
-    Checkable: <T, K extends COMPATIBLEKEYS<T, {}>>(props: Pick<CheckableInputProps<{}>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "checked" | "onChange"> | "checkedValue" | "uncheckedValue"> & WrappedComponentProps<T, K, {}>) => JSX.Element;
+    Checkable: typeof CheckableInputWrapper;
     Generic: typeof BaseInputWrapper;
-    String: <T, K extends COMPATIBLEKEYS<T, string | undefined>>(props: Pick<Pick<BaseInputProps<string | undefined>, "onChange" | "value" | Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">> & WrappedComponentProps<T, K, string | undefined>) => JSX.Element;
-    Number: <T, K extends COMPATIBLEKEYS<T, number | undefined>>(props: Pick<Pick<BaseInputProps<number | undefined>, "onChange" | "value" | Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">> & WrappedComponentProps<T, K, number | undefined>) => JSX.Element;
+    String: <T, K extends COMPATIBLEKEYS<T, string | undefined>>(props: Pick<Pick<BaseInputProps<string | undefined>, "onChange" | "value" | Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">> & {
+        controller: Controller<T>;
+        prop: K;
+    }) => JSX.Element;
+    Number: <T, K extends COMPATIBLEKEYS<T, number | undefined>>(props: Pick<Pick<BaseInputProps<number | undefined>, "onChange" | "value" | Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">> & {
+        controller: Controller<T>;
+        prop: K;
+    }) => JSX.Element;
     LazyGeneric: typeof LazyBaseInputWrapper;
-    LazyString: <T, K extends COMPATIBLEKEYS<T, string | undefined>>(props: Pick<Pick<LazyBaseInputProps<string | undefined>, "onChange" | "value" | Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "onBlur">>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "onBlur">> & WrappedComponentProps<T, K, string | undefined>) => JSX.Element;
-    LazyNumber: <T, K extends COMPATIBLEKEYS<T, number | undefined>>(props: Pick<Pick<LazyBaseInputProps<number | undefined>, "onChange" | "value" | Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "onBlur">>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "onBlur">> & WrappedComponentProps<T, K, number | undefined>) => JSX.Element;
-    TextArea: <T, K extends COMPATIBLEKEYS<T, string | undefined>>(props: Pick<Pick<BaseTextAreaProps<string | undefined>, "onChange" | "value" | Exclude<keyof React.TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange">>, Exclude<keyof React.TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange">> & WrappedComponentProps<T, K, string | undefined>) => JSX.Element;
+    LazyString: <T, K extends COMPATIBLEKEYS<T, string | undefined>>(props: Pick<Pick<LazyBaseInputProps<string | undefined>, "onChange" | "value" | Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "onBlur">>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "onBlur">> & {
+        controller: Controller<T>;
+        prop: K;
+    }) => JSX.Element;
+    LazyNumber: <T, K extends COMPATIBLEKEYS<T, number | undefined>>(props: Pick<Pick<LazyBaseInputProps<number | undefined>, "onChange" | "value" | Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "onBlur">>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "defaultValue" | "onChange" | "onBlur">> & {
+        controller: Controller<T>;
+        prop: K;
+    }) => JSX.Element;
+    TextArea: <T, K extends COMPATIBLEKEYS<T, string | undefined>>(props: Pick<Pick<BaseTextAreaProps<string | undefined>, "onChange" | "value" | Exclude<keyof React.TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange">>, Exclude<keyof React.TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange">> & {
+        controller: Controller<T>;
+        prop: K;
+    }) => JSX.Element;
     TextAreaGeneric: typeof BaseTextAreaWrapper;
     Select: typeof SelectWrapper;
     Indexed: typeof Indexed;

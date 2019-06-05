@@ -148,6 +148,18 @@ var CheckableInput = /** @class */ (function (_super) {
     };
     return CheckableInput;
 }(React.Component));
+var CheckableInputWrapper = /** @class */ (function (_super) {
+    __extends(CheckableInputWrapper, _super);
+    function CheckableInputWrapper() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    CheckableInputWrapper.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, rest = __rest(_a, ["controller", "prop"]);
+        var snapshot = prop !== 'this' ? controller.snapshot(prop) : controller.snapshot();
+        return (React.createElement(CheckableInput, __assign({ value: snapshot.value, onChange: snapshot.onChange }, rest)));
+    };
+    return CheckableInputWrapper;
+}(React.Component));
 var LazyBaseInput = /** @class */ (function (_super) {
     __extends(LazyBaseInput, _super);
     function LazyBaseInput() {
@@ -370,7 +382,7 @@ var Indexed = /** @class */ (function (_super) {
     return Indexed;
 }(React.Component));
 exports.Input = {
-    Checkable: wrapComponent(CheckableInput),
+    Checkable: CheckableInputWrapper,
     Generic: BaseInputWrapper,
     String: wrapComponent(StringInput),
     Number: wrapComponent(NumberInput),
@@ -401,6 +413,7 @@ function test() {
         React.createElement(exports.Input.LazyGeneric, { controller: c, prop: "age", convert: function (value) { return parseInt(value); }, display: function (value) { return "" + value; } }),
         React.createElement(exports.Input.TextArea, { controller: c, prop: "name" }),
         React.createElement(exports.Input.Select, { controller: c, prop: "name", options: ['John', 'Frank'] }),
+        React.createElement(exports.Input.Checkable, { controller: c, prop: "age", checkedValue: 42 }),
         "Should break",
         React.createElement(exports.Input.Select, { controller: c, prop: "age", options: [{ key: 34, value: 34 }] })));
     var value2 = {};
