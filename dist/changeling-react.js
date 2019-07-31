@@ -160,6 +160,47 @@ var CheckableInputWrapper = /** @class */ (function (_super) {
     };
     return CheckableInputWrapper;
 }(React.Component));
+var MultiCheckableInput = /** @class */ (function (_super) {
+    __extends(MultiCheckableInput, _super);
+    function MultiCheckableInput() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.onChange = function (evt) {
+            var index = _this.props.value.indexOf(_this.props.checkedValue);
+            if (evt.target.checked) {
+                if (index === -1) {
+                    var newValue = _this.props.value.concat([_this.props.checkedValue]);
+                    _this.props.onChange(newValue);
+                }
+            }
+            else {
+                if (index !== -1) {
+                    var newValue = _this.props.value.slice();
+                    newValue.splice(index, 1);
+                    _this.props.onChange(newValue);
+                }
+            }
+        };
+        return _this;
+    }
+    MultiCheckableInput.prototype.render = function () {
+        var _a = this.props, value = _a.value, checkedValue = _a.checkedValue, uncheckedValue = _a.uncheckedValue, onChange = _a.onChange, rest = __rest(_a, ["value", "checkedValue", "uncheckedValue", "onChange"]);
+        var checked = value && value.indexOf(checkedValue) !== -1;
+        return (React.createElement("input", __assign({ checked: checked, onChange: this.onChange, value: checkedValue !== undefined && checkedValue !== null ? "" + checkedValue : '' }, rest)));
+    };
+    return MultiCheckableInput;
+}(React.Component));
+var MultiCheckableInputWrapper = /** @class */ (function (_super) {
+    __extends(MultiCheckableInputWrapper, _super);
+    function MultiCheckableInputWrapper() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    MultiCheckableInputWrapper.prototype.render = function () {
+        var _a = this.props, controller = _a.controller, prop = _a.prop, rest = __rest(_a, ["controller", "prop"]);
+        var snapshot = prop !== 'this' ? controller.snapshot(prop) : controller.snapshot();
+        return (React.createElement(MultiCheckableInput, __assign({ value: snapshot.value, onChange: snapshot.onChange }, rest)));
+    };
+    return MultiCheckableInputWrapper;
+}(React.Component));
 var LazyBaseInput = /** @class */ (function (_super) {
     __extends(LazyBaseInput, _super);
     function LazyBaseInput() {
@@ -383,6 +424,7 @@ var Indexed = /** @class */ (function (_super) {
 }(React.Component));
 exports.Input = {
     Checkable: CheckableInputWrapper,
+    MultiCheckable: MultiCheckableInputWrapper,
     Generic: BaseInputWrapper,
     String: wrapComponent(StringInput),
     Number: wrapComponent(NumberInput),
@@ -400,6 +442,7 @@ function test() {
         name: '',
         age: 0,
         works: false,
+        options: [],
     };
     var c = changeling_1.withMutable(value);
     var jsx1 = (React.createElement(React.Fragment, null,
@@ -414,6 +457,7 @@ function test() {
         React.createElement(exports.Input.TextArea, { controller: c, prop: "name" }),
         React.createElement(exports.Input.Select, { controller: c, prop: "name", options: ['John', 'Frank'] }),
         React.createElement(exports.Input.Checkable, { controller: c, prop: "age", checkedValue: 42 }),
+        React.createElement(exports.Input.MultiCheckable, { controller: c, prop: "options", checkedValue: "Cool" }),
         "Should break",
         React.createElement(exports.Input.Select, { controller: c, prop: "age", options: [{ key: 34, value: 34 }] })));
     var value2 = {};

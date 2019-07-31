@@ -34,6 +34,13 @@ interface CheckableInputWrapperProps<T, K extends KEYORTHIS<T>, V> extends Omit<
 declare class CheckableInputWrapper<T, K extends KEYORTHIS<T>, C extends PROPERTYORTHIS<T, K>> extends React.Component<CheckableInputWrapperProps<T, K, C>> {
     render(): JSX.Element;
 }
+interface MultiCheckableInputWrapperProps<T, K extends KEYORTHIS<T>, V> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'checked' | 'onChange' | 'value'>, ControllerProps<T, K> {
+    checkedValue: V;
+    uncheckedValue?: V;
+}
+declare class MultiCheckableInputWrapper<T, K extends KEYORTHIS<T>, C extends INDEXPROPERTY<PROPERTYORTHIS<T, K>>> extends React.Component<MultiCheckableInputWrapperProps<T, K, C>> {
+    render(): JSX.Element;
+}
 interface LazyBaseInputProps<T> extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'defaultValue' | 'onBlur' | 'convert' | 'display'>, Snapshot<T> {
     convert: (value: string) => T;
     display: (value: T) => string;
@@ -98,6 +105,7 @@ declare class Indexed<T, K extends KEYORTHIS<T>> extends React.Component<Indexed
 }
 export declare const Input: {
     Checkable: typeof CheckableInputWrapper;
+    MultiCheckable: typeof MultiCheckableInputWrapper;
     Generic: typeof BaseInputWrapper;
     String: <T, K extends COMPATIBLEKEYS<T, string | undefined>>(props: Pick<Pick<BaseInputProps<string | undefined>, "onChange" | "value" | Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">>, Exclude<keyof React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">> & {
         controller: Controller<T>;
