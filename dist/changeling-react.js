@@ -185,7 +185,7 @@ var MultiCheckableInput = /** @class */ (function (_super) {
     }
     MultiCheckableInput.prototype.render = function () {
         var _a = this.props, value = _a.value, checkedValue = _a.checkedValue, uncheckedValue = _a.uncheckedValue, onChange = _a.onChange, rest = __rest(_a, ["value", "checkedValue", "uncheckedValue", "onChange"]);
-        var checked = value && value.indexOf(checkedValue) !== -1;
+        var checked = value ? value.indexOf(checkedValue) !== -1 : false;
         return (React.createElement("input", __assign({ checked: checked, onChange: this.onChange, value: checkedValue !== undefined && checkedValue !== null ? "" + checkedValue : '' }, rest)));
     };
     return MultiCheckableInput;
