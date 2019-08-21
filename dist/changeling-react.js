@@ -165,16 +165,17 @@ var MultiCheckableInput = /** @class */ (function (_super) {
     function MultiCheckableInput() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.onChange = function (evt) {
-            var index = _this.props.value.indexOf(_this.props.checkedValue);
+            var existing = _this.props.value || [];
+            var index = existing.indexOf(_this.props.checkedValue);
             if (evt.target.checked) {
                 if (index === -1) {
-                    var newValue = _this.props.value.concat([_this.props.checkedValue]);
+                    var newValue = existing.concat([_this.props.checkedValue]);
                     _this.props.onChange(newValue);
                 }
             }
             else {
                 if (index !== -1) {
-                    var newValue = _this.props.value.slice();
+                    var newValue = existing.slice();
                     newValue.splice(index, 1);
                     _this.props.onChange(newValue);
                 }
