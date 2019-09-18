@@ -1,2 +1,3 @@
-export { Snapshot, Controller, forComponentProps, forComponentState, withFuncs, withMutable } from './changeling'
-export { wrapComponent, Input } from './changeling-react'
+export { Snapshot, Controller, withFuncs, withMutable } from './changeling'
+export { forComponentProps, forComponentState } from './changeling-react'
+export { wrapComponent, Input, IndexedCursor, IndexedActions } from './changeling-react-dom'
