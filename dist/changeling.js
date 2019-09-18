@@ -1,35 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var immer_1 = require("immer");
-function forComponentProps(component, valueProperty, onChangeProperty) {
-    if (onChangeProperty === undefined || valueProperty === undefined) {
-        return new ChangelingImpl(function () { return component.props; });
-    }
-    else {
-        return new ChangelingImpl(function () { return ({
-            onChange: function (newValue) { return component.props[onChangeProperty](newValue); },
-            value: component.props[valueProperty],
-        }); });
-    }
-}
-exports.forComponentProps = forComponentProps;
-function forComponentState(component, property) {
-    if (property === undefined) {
-        return new ChangelingImpl(function () { return ({
-            onChange: function (newValue) { return component.setState(function () { return newValue; }); },
-            value: component.state,
-        }); });
-    }
-    else {
-        return new ChangelingImpl(function () { return ({
-            onChange: function (newValue) { return component.setState(immer_1.produce(function (draft) {
-                draft[property] = newValue;
-            })); },
-            value: component.state[property],
-        }); });
-    }
-}
-exports.forComponentState = forComponentState;
 function withFuncs(value, onChange) {
     return new ChangelingImpl(function () { return ({
         onChange: onChange,
@@ -60,6 +31,7 @@ var ChangelingImpl = /** @class */ (function () {
         this.onChanges = {};
         this.getters = {};
         this.setters = {};
+        this.changeListeners = [];
         this.locator = locator;
     }
     ChangelingImpl.prototype.snapshot = function (nameOrIndex, index) {
@@ -106,6 +78,15 @@ var ChangelingImpl = /** @class */ (function () {
         this.setters[name] = func;
         delete this.onChanges[name];
     };
+    ChangelingImpl.prototype.addChangeListener = function (listener) {
+        this.changeListeners.push(listener);
+    };
+    ChangelingImpl.prototype.removeChangeListener = function (listener) {
+        var index = this.changeListeners.indexOf(listener);
+        if (index !== -1) {
+            this.changeListeners.splice(index, 1);
+        }
+    };
     ChangelingImpl.prototype.controller = function (nameOrIndex, index) {
         var _this = this;
         if (typeof nameOrIndex === 'number') {
@@ -126,7 +107,11 @@ var ChangelingImpl = /** @class */ (function () {
         configurable: true
     });
     ChangelingImpl.prototype.onChange = function (value) {
-        return this.locator().onChange(value);
+        this.locator().onChange(value);
+        for (var _i = 0, _a = this.changeListeners; _i < _a.length; _i++) {
+            var listener = _a[_i];
+            listener(value);
+        }
     };
     ChangelingImpl.prototype.propOnChange = function (name) {
         var _this = this;
@@ -160,3 +145,4 @@ var ChangelingImpl = /** @class */ (function () {
     };
     return ChangelingImpl;
 }());
+exports.ChangelingImpl = ChangelingImpl;

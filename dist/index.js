@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var changeling_1 = require("./changeling");
-exports.forComponentProps = changeling_1.forComponentProps;
-exports.forComponentState = changeling_1.forComponentState;
 exports.withFuncs = changeling_1.withFuncs;
 exports.withMutable = changeling_1.withMutable;
 var changeling_react_1 = require("./changeling-react");
-exports.wrapComponent = changeling_react_1.wrapComponent;
-exports.Input = changeling_react_1.Input;
+exports.forComponentProps = changeling_react_1.forComponentProps;
+exports.forComponentState = changeling_react_1.forComponentState;
+var changeling_react_dom_1 = require("./changeling-react-dom");
+exports.wrapComponent = changeling_react_dom_1.wrapComponent;
+exports.Input = changeling_react_dom_1.Input;
