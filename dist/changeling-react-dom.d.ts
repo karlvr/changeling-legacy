@@ -96,9 +96,9 @@ export interface IndexedActions<V> {
     onRemove: IndexedOnRemove<V>;
 }
 interface IndexedProps<T, K extends KEYORTHIS<T>> extends ControllerProps<T, K> {
-    renderEach?: (controller: Controller<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>, cursor: IndexedCursor, actions: IndexedActions<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>) => JSX.Element;
-    renderBefore?: (actions: IndexedActions<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>) => JSX.Element;
-    renderAfter?: (actions: IndexedActions<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>) => JSX.Element;
+    renderEach?: (controller: Controller<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>, cursor: IndexedCursor, actions: IndexedActions<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>) => JSX.Element | null;
+    renderBefore?: (actions: IndexedActions<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>) => JSX.Element | null;
+    renderAfter?: (actions: IndexedActions<INDEXPROPERTY<PROPERTYORTHIS<T, K>>>) => JSX.Element | null;
 }
 declare class Indexed<T, K extends KEYORTHIS<T>> extends React.Component<IndexedProps<T, K>> {
     render(): JSX.Element;
